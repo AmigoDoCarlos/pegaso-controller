@@ -2,8 +2,8 @@ import React from "react";
 import { DimensionValue, StyleProp, View, ViewStyle } from "react-native";
 
 interface buttonProps {
-    width: DimensionValue;
-    height: DimensionValue;
+    width?: DimensionValue;
+    height?: DimensionValue;
     children: JSX.Element | JSX.Element[];
     onTouch: () => void;
     onTouchEnd?: () => void;

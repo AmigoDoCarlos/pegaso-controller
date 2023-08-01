@@ -5,12 +5,12 @@ import { colors } from "../../../../colors";
 
 interface axisButtonProps {
     children: string;
-    onClick: () => void;
+    onClick: (axis: string) => void;
 }
 
 export default function AxisButton({children, onClick}: axisButtonProps){
     return (
-        <Button backgroundColor={colors.darkGrey} width={'30%'} height={80} onTouch={onClick}>
+        <Button backgroundColor={colors.darkGrey} width={'30%'} height={80} onTouch={() => onClick(children)}>
             <Text style={{color: colors.darkWhite, fontSize: 18}}>
                 {children}
             </Text>
