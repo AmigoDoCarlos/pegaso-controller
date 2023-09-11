@@ -3,21 +3,45 @@ import Slider from '@react-native-community/slider';
 import { StyleProp, ViewStyle } from "react-native";
 import { colors } from "../../colors";
 import { Container, Legend } from "./ProgressBar.style";
+import { Event } from "../../contexts/GlobalContextProvider";
 
+type Alias = {
+   value: number,
+   text: string, 
+}
 interface ProgressBarProps {
     color: string;
+    type: Event['type'];
     leftText: string;
-    rightTexts: string[];
-    onChange?: (newValue: string) => void;
+    rightTexts: string[] | number[] | Alias[];
+    extraText?: string;
+    onChange?: (e: Event) => void;
 }
 
-export default function ProgressBar({color, leftText, rightTexts, onChange}: ProgressBarProps){
+function get(info: 'value' | 'text', what: string | number | Alias){
+    if(typeof what === 'number' || typeof what === 'string'){
+        return what;
+    }
+    return (info === 'value')? what.value : what.text;
+}
+
+export default function ProgressBar({color, type, leftText, rightTexts, extraText, onChange}: ProgressBarProps){
     
     const [value, setValue] = useState(() => Math.floor(rightTexts.length / 2));
 
     const style: StyleProp<ViewStyle> = {
         flex: 1,
         height: 40,
+    }
+
+    const rightText = () => {
+        const item = rightTexts.at(value);
+        if(item){
+            const text = get('text', item);
+            const trailingText = extraText? extraText : '';
+            return `${text}${trailingText}`;
+        }
+        return '';
     }
 
     return (
@@ -36,11 +60,11 @@ export default function ProgressBar({color, leftText, rightTexts, onChange}: Pro
                 maximumTrackTintColor={colors.darkWhite}
                 onValueChange={(newValue) => {
                     setValue(newValue);
-                    onChange && onChange(rightTexts[newValue]);
+                    onChange && onChange({type: type, value: get('value', rightTexts[newValue])});
                 }}
             />
             <Legend>
-                {rightTexts[value]}
+                {rightText()}
             </Legend>
         </Container>
     )

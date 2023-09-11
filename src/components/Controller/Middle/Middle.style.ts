@@ -52,3 +52,11 @@ export const Title = styled.Text`
     color: ${colors.darkWhite};
 `;
 
+export const InfoText = styled.Text`
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    text-align: center;
+    color: black;
+    font-size: 14px;
+`;
