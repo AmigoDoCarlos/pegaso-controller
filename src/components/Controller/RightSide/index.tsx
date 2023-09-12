@@ -19,11 +19,10 @@ export default function RightSide({borderColor}: RightSideProps){
         switch(e.type){
             case "move_axis":
                 if(e.value === '+' || e.value === '-'){
-                    setInfoText(`Movendo no sentido ${e.value}!`);
                     setDirection(e.value);
                     setMoving(true);
                 } else {
-                    setInfoText(`${e.value} não implementado ainda.`);
+                    setInfoText(`'${e.value}' não implementado ainda.`);
                 }
                 break;
             case "stop_axis":

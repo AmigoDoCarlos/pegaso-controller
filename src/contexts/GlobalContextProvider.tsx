@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useState, useEffect, useRef } from 'react';
 import { colors } from '../colors';
-import { sendMessageTo } from './network';
+import SocketConnection from '../lib/socket';
 
 export interface Event {
     type: 'set_axis' | 'set_vel' | 'set_des' | 'set_res' | 'move_axis' | 'stop_axis';
@@ -40,7 +40,7 @@ const initial: GlobalValues = {
     borderColor: colors.blue,
     axis: 'BASE',
     direction: 'none',
-    speed: 0,
+    speed: 1,
     length: 30,
     microstep: 16,
     moving: false,
@@ -66,12 +66,9 @@ export function useGlobalContext() {
 }
 
 export default function GlobalProvider(props: GlobalProviderProps) {
-    const [msgToRobot, setMsgToRobot] = useState<robotCommandType>();
     const [msgFromRobot, setMsgFromRobot] = useState<string>('');
-
     const [infoText, setInfoText] = useState<string>(initial.infoText);
     const [borderColor, setBorderColor] = useState<string>(initial.borderColor);
-    
     const [axis, setAxis] = useState<GlobalValues['axis']>(initial.axis);
     const [direction, setDirection] = useState<GlobalValues['direction']>(initial.direction);
     const [speed, setSpeed] = useState<GlobalValues['speed']>(initial.speed);
@@ -79,34 +76,22 @@ export default function GlobalProvider(props: GlobalProviderProps) {
     const [microstep, setMicrostep] = useState<GlobalValues['microstep']>(initial.microstep);
     const [moving, setMoving] = useState<GlobalValues['moving']>(initial.moving);
 
+    //start-up
+    const socket = SocketConnection.getInstance();
     useEffect(() => {
-        if(direction === 'none'){
-            setMsgToRobot({
-                command: `ANDROID_${direction}_${axis}_${length}_${speed}_${microstep}`,
-                moving: moving
-            });
-        }
-    }, [axis, direction, speed, length, microstep, moving]);
+        socket.connect('http://192.168.0.132:2222');
+        socket.addEventListener('robot-msg', (msg) => {
+            setMsgFromRobot(msg);
+            setInfoText(msg);
+        });
+    }, []);
 
     useEffect(() => {
-        if(msgToRobot){
-            if(direction !== 'none'){
-                sendMessageTo({
-                    url: 'http://192.168.0.222',
-                    message: msgToRobot.command,
-                    onSuccess: (reply: string) => {
-                        setMsgFromRobot(reply);
-                        setInfoText(`O robô respondeu: ${reply}`);
-                        console.log(reply);
-                    },
-                    onFailure: (reply: string) => {
-                        setMsgFromRobot(reply);
-                        setInfoText(`Erro: ${reply}`);
-                    },
-                });
-            }
+        if(direction !== 'none'){
+            setInfoText('enviando...');
+            socket.emit('robot-msg', `ANDROID_${direction}_${axis}_${length}_${speed}_${microstep}`);
         }
-    }, [msgToRobot, direction]);
+    }, [direction]);
 
     const value: GlobalValues = {
         infoText,
