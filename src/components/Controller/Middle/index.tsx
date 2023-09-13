@@ -1,6 +1,5 @@
-import React from "react";
 import settingsIcon from '../../../assets/icons/settings.png';
-import { Bottom, Icon, InfoText, MiddleView, Screen, ScreenBar, Title, Top } from "./Middle.style";
+import { Bottom, Icon, InfoText, InfoTextView, MiddleView, Screen, ScreenBar, Title, Top } from "./Middle.style";
 import { ImageSourcePropType } from "react-native";
 import { useGlobalContext } from "../../../contexts/GlobalContextProvider";
 
@@ -22,9 +21,13 @@ export default function Middle({leftSideIcon}: middleProps){
                         </Title>
                         <Icon source={settingsIcon}/>
                     </ScreenBar>
-                    <InfoText>
-                        {infoText}
-                    </InfoText>
+                    <InfoTextView>
+                        {infoText.map((text, index) =>(
+                            <InfoText key={index}>
+                                {text}
+                            </InfoText>
+                        ))}
+                    </InfoTextView>
                 </Screen>
             </Top>
             <Bottom/>

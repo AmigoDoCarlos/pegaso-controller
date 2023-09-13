@@ -1,15 +1,10 @@
 import { createContext, ReactNode, useContext, useState, useEffect, useRef } from 'react';
 import { colors } from '../colors';
 import SocketConnection from '../lib/socket';
-
+import { INFINITE_LENGTH, getEndMessage, getStartMessage } from '../lib/commands';
 export interface Event {
     type: 'set_axis' | 'set_vel' | 'set_des' | 'set_res' | 'move_axis' | 'stop_axis';
     value: string | number;
-}
-
-type robotCommandType = {
-    command: string;
-    moving: boolean;
 }
 
 interface GlobalProviderProps {
@@ -17,7 +12,7 @@ interface GlobalProviderProps {
 }
 
 interface GlobalValues {
-    infoText: string;
+    infoText: string[];
     borderColor: string;
     axis: string,
     direction: string,
@@ -26,7 +21,7 @@ interface GlobalValues {
     microstep: number,
     moving: boolean,
     setMoving: React.Dispatch<React.SetStateAction<boolean>>,
-    setInfoText: React.Dispatch<React.SetStateAction<string>>,
+    setInfoText: React.Dispatch<React.SetStateAction<string[]>>,
     setBorderColor: React.Dispatch<React.SetStateAction<string>>,
     setAxis: React.Dispatch<React.SetStateAction<string>>,
     setDirection: React.Dispatch<React.SetStateAction<string>>,
@@ -36,7 +31,7 @@ interface GlobalValues {
 }
 
 const initial: GlobalValues = {
-    infoText: 'Bem Vindo(a) ao projeto Pégaso!',
+    infoText: ['Bem Vindo(a) ao projeto Pégaso!'],
     borderColor: colors.blue,
     axis: 'BASE',
     direction: 'none',
@@ -67,7 +62,7 @@ export function useGlobalContext() {
 
 export default function GlobalProvider(props: GlobalProviderProps) {
     const [msgFromRobot, setMsgFromRobot] = useState<string>('');
-    const [infoText, setInfoText] = useState<string>(initial.infoText);
+    const [infoText, setInfoText] = useState<string[]>(initial.infoText);
     const [borderColor, setBorderColor] = useState<string>(initial.borderColor);
     const [axis, setAxis] = useState<GlobalValues['axis']>(initial.axis);
     const [direction, setDirection] = useState<GlobalValues['direction']>(initial.direction);
@@ -82,14 +77,16 @@ export default function GlobalProvider(props: GlobalProviderProps) {
         socket.connect('http://192.168.0.132:2222');
         socket.addEventListener('robot-msg', (msg) => {
             setMsgFromRobot(msg);
-            setInfoText(msg);
+            setInfoText([msg]);
         });
     }, []);
 
     useEffect(() => {
         if(direction !== 'none'){
-            setInfoText('enviando...');
-            socket.emit('robot-msg', `ANDROID_${direction}_${axis}_${length}_${speed}_${microstep}`);
+            setInfoText(['enviando...']);
+            socket.emit('robot-msg', getStartMessage(direction, axis, length, speed, microstep));
+        } else {
+            (length === INFINITE_LENGTH) && socket.emit('robot-msg', getEndMessage());
         }
     }, [direction]);
 

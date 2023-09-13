@@ -28,6 +28,7 @@ export const Screen = styled.View`
     border-radius: 20px;
     border: 2px solid ${colors.darkWhite};
     background: ${colors.darkWhite};
+    overflow: hidden;
 `;
 
 export const ScreenBar = styled.View`
@@ -52,10 +53,15 @@ export const Title = styled.Text`
     color: ${colors.darkWhite};
 `;
 
+export const InfoTextView = styled.View`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+`;
+
 export const InfoText = styled.Text`
     width: 100%;
-    height: 100%;
-    padding: 10px;
     text-align: center;
     color: black;
     font-size: 14px;

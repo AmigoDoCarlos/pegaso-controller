@@ -1,17 +1,44 @@
-import React from "react";
 import AxisButton from "./AxisButton";
 import ProgressBar from "../../ProgressBar";
 import { Event, useGlobalContext } from "../../../contexts/GlobalContextProvider";
 import { ButtonRow, Left, Section, Sliders } from "./LeftSide.style";
+import { INFINITE_LENGTH } from "../../../lib/commands";
 
 interface LeftSideProps {
     borderColor: string;
 }
 
-function getSpeedText(speed: number){
-    if(speed ===0) return 'mínima';
-    if(speed ===1) return 'média';
-    return 'máxima'; 
+const speeds = [
+    {value: 0, text: "mínima"},
+    {value: 1, text: "média"},
+    {value: 2, text: "máxima"}
+]
+
+const lengths = [
+    {value: 0, text: "1°"},
+    {value: 1, text: "5°"},
+    {value: 2, text: "15°"},
+    {value: 3, text: "30°"},
+    {value: 4, text: "45°"},
+    {value: 5, text: "60°"},
+    {value: 6, text: "75°"},
+    {value: 7, text: "90°"},
+    {value: INFINITE_LENGTH, text: "∞"},
+]
+
+
+function getSpeedText(index: number){
+    return `Velocidade ajustada para ${speeds[index].text}.`; 
+}
+
+function getLengthText(index: number){
+    if(index < INFINITE_LENGTH) return [
+        `Deslocamento ajustado para ${lengths[index].text}.`
+    ];
+    return [
+        'Deslocamento ajustado para ilimitado.',
+        'Mantenha os botões + ou - pressionados para mexer o robô. Solte para parar.'
+    ];
 }
 
 export default function LeftSide({borderColor}: LeftSideProps){
@@ -22,19 +49,19 @@ export default function LeftSide({borderColor}: LeftSideProps){
         switch(e.type){
             case 'set_axis':
                 if(typeof e.value === 'string'){
-                    setInfoText(`Junta ${e.value} selecionada.`);
+                    setInfoText([`Junta ${e.value} selecionada.`]);
                     setAxis(e.value);
                 }
                 break;
             case 'set_des':
                 if(typeof e.value === 'number'){
-                    setInfoText(`Deslocamento ajustado para ${e.value}°.`);
+                    setInfoText(getLengthText(e.value));
                     setLength(e.value);
                 }
                 break;
             case 'set_vel':
                 if(typeof e.value === 'number'){
-                    setInfoText(`Velocidade ajustada para ${getSpeedText(e.value)}.`);
+                    setInfoText([getSpeedText(e.value)]);
                     setSpeed(e.value);
                 }
                 break;
@@ -61,19 +88,18 @@ export default function LeftSide({borderColor}: LeftSideProps){
                     onChange={handleEvent}
                     color={borderColor}
                     leftText="Vel."
-                    rightTexts={[
-                        {value: 0, text: "min."},
-                        {value: 1, text: "méd."},
-                        {value: 2, text: "máx."}
-                    ]}
+                    rightTexts={speeds.map(s => ({
+                        value: s.value,
+                        text: s.text.substring(0, 3)
+                    }))}
+                    extraText="."
                 />
                 <ProgressBar
                     type="set_des"
                     onChange={handleEvent}
                     color={borderColor}
                     leftText="Des."
-                    rightTexts={[1, 5, 15, 30, 45, 60, 90]}
-                    extraText="°"
+                    rightTexts={lengths}
                 />
             </Sliders>
         </Left>

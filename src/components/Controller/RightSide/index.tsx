@@ -22,7 +22,7 @@ export default function RightSide({borderColor}: RightSideProps){
                     setDirection(e.value);
                     setMoving(true);
                 } else {
-                    setInfoText(`'${e.value}' não implementado ainda.`);
+                    setInfoText([`'${e.value}' não implementado ainda.`]);
                 }
                 break;
             case "stop_axis":
@@ -31,7 +31,7 @@ export default function RightSide({borderColor}: RightSideProps){
                 break;
             case "set_res":
                 if(typeof e.value === "number"){
-                    setInfoText(`Resolução dos motores alterada para ${e.value}.`)
+                    setInfoText([`Resolução dos motores alterada para ${e.value}.`])
                     setMicrostep(e.value);
                 }
             break;
