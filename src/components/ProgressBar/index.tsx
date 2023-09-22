@@ -3,19 +3,20 @@ import Slider from '@react-native-community/slider';
 import { StyleProp, ViewStyle } from "react-native";
 import { colors } from "../../colors";
 import { Container, Legend } from "./ProgressBar.style";
-import { Event } from "../../contexts/GlobalContextProvider";
+import { eventType } from "../../contexts/types";
 
 type Alias = {
    value: number,
    text: string, 
 }
 interface ProgressBarProps {
+    disabled: boolean;
     color: string;
-    type: Event['type'];
+    type: eventType['type'];
     leftText: string;
     rightTexts: string[] | number[] | Alias[];
     extraText?: string;
-    onChange?: (e: Event) => void;
+    onChange?: (e: eventType) => void;
 }
 
 function get(info: 'value' | 'text', what: string | number | Alias){
@@ -25,7 +26,7 @@ function get(info: 'value' | 'text', what: string | number | Alias){
     return (info === 'value')? what.value : what.text;
 }
 
-export default function ProgressBar({color, type, leftText, rightTexts, extraText, onChange}: ProgressBarProps){
+export default function ProgressBar({disabled, color, type, leftText, rightTexts, extraText, onChange}: ProgressBarProps){
     
     const [value, setValue] = useState(() => Math.floor(rightTexts.length / 2));
 
@@ -50,6 +51,7 @@ export default function ProgressBar({color, type, leftText, rightTexts, extraTex
                 {leftText}
             </Legend>
             <Slider
+                disabled={disabled}
                 style={style}
                 step={1}
                 value={value}

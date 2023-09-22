@@ -1,12 +1,12 @@
-import LeftSide from '../../components/Controller/LeftSide';
-import RightSide from '../../components/Controller/RightSide';
-import Section from '../../components/Controller/Section';
-import Middle from '../../components/Controller/Middle';
-import cartesianIcon from '../../assets/icons/cartesian.png';
 import { colors } from '../../colors';
 import { SafeAreaView, StatusBar } from 'react-native';
-import { Background, BottomSection, UpperSection } from './MainController.style';
 import { useGlobalContext } from '../../contexts/GlobalContextProvider';
+import LeftSide from './Controller/LeftSide';
+import RightSide from './Controller/RightSide';
+import Bottom from './Controller/Bottom';
+import Middle from './Controller/Middle';
+import cartesianIcon from '../../assets/icons/cartesian.png';
+import { Background, BottomSection, UpperSection } from './MainController.style';
 
 export default function MainController(){
     const { borderColor } = useGlobalContext();
@@ -21,8 +21,7 @@ export default function MainController(){
                     <RightSide borderColor={borderColor}/>
                 </UpperSection>
                 <BottomSection>
-                    <Section backgroundColor={colors.darkGrey} width={'100%'} height={'100%'}>
-                    </Section>
+                    <Bottom />
                 </BottomSection>
             </Background>
         </SafeAreaView>

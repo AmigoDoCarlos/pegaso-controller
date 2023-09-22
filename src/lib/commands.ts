@@ -1,5 +1,4 @@
-const HEADER = 'ANDROID'
-export const INFINITE_LENGTH = 8;   //maior índice da barra de ajuste
+import { HEADER, INFINITE_LENGTH } from "../contexts/constants";
 
 //tipos de comando:
 //REACT_sentido_junta_deslocamento_velocidade_resolução
@@ -20,6 +19,10 @@ export const getEndMessage = () => {
     return `${HEADER}_END`;
 }
 
-export const getResetMessage = () => {
-    return `${HEADER}_RESET`;
+export const getGoHomeMessage = () => {
+    return `${HEADER}_GO_HOME`;
+}
+
+export const getResetHomeMessage = () => {
+    return `${HEADER}_RESET_HOME`;
 }

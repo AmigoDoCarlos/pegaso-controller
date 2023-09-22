@@ -1,26 +1,25 @@
-import { createContext, ReactNode, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, ReactNode, useContext, useState, useEffect } from 'react';
+import { getEndMessage, getStartMessage } from '../lib/commands';
+import { INFINITE_LENGTH, SERVER, PORT } from './constants';
 import { colors } from '../colors';
+import { connections, msgType } from './types';
 import SocketConnection from '../lib/socket';
-import { INFINITE_LENGTH, getEndMessage, getStartMessage } from '../lib/commands';
-export interface Event {
-    type: 'set_axis' | 'set_vel' | 'set_des' | 'set_res' | 'move_axis' | 'stop_axis';
-    value: string | number;
-}
 
 interface GlobalProviderProps {
     children: ReactNode;
 }
 
 interface GlobalValues {
+    msgReceived: msgType;
     infoText: string[];
+    sequence: string[];
     borderColor: string;
     axis: string,
     direction: string,
     speed: number,
     length: number,
     microstep: number,
-    moving: boolean,
-    setMoving: React.Dispatch<React.SetStateAction<boolean>>,
+    connection: connections,
     setInfoText: React.Dispatch<React.SetStateAction<string[]>>,
     setBorderColor: React.Dispatch<React.SetStateAction<string>>,
     setAxis: React.Dispatch<React.SetStateAction<string>>,
@@ -31,15 +30,16 @@ interface GlobalValues {
 }
 
 const initial: GlobalValues = {
-    infoText: ['Bem Vindo(a) ao projeto Pégaso!'],
+    msgReceived: {type: 'info', content: ['aplicativo inicializado.']},
+    infoText: ['Bem Vindo(a) ao projeto Pégaso!', 'acesse as configurações para vincular o robô.'],
+    sequence: [],
     borderColor: colors.blue,
     axis: 'BASE',
     direction: 'none',
     speed: 1,
-    length: 30,
+    length: 3,
     microstep: 16,
-    moving: false,
-    setMoving: () => {},
+    connection: {server: false, robot: false},
     setInfoText: () => {},
     setBorderColor: () => {},
     setAxis: () => {},
@@ -61,45 +61,94 @@ export function useGlobalContext() {
 }
 
 export default function GlobalProvider(props: GlobalProviderProps) {
-    const [msgFromRobot, setMsgFromRobot] = useState<string>('');
+    const [msgReceived, setMsgReceived] = useState<msgType>();
     const [infoText, setInfoText] = useState<string[]>(initial.infoText);
+    const [sequence, setSequence] = useState<string[]>(initial.sequence);
     const [borderColor, setBorderColor] = useState<string>(initial.borderColor);
     const [axis, setAxis] = useState<GlobalValues['axis']>(initial.axis);
     const [direction, setDirection] = useState<GlobalValues['direction']>(initial.direction);
     const [speed, setSpeed] = useState<GlobalValues['speed']>(initial.speed);
     const [length, setLength] = useState<GlobalValues['length']>(initial.length);
     const [microstep, setMicrostep] = useState<GlobalValues['microstep']>(initial.microstep);
-    const [moving, setMoving] = useState<GlobalValues['moving']>(initial.moving);
+
+    const [connection, setConnection] = useState<connections>(initial.connection);                  //global (guarda estado de conexão com server e com robô)
+    const [connectionWithServer, setConnectionWithServer] = useState<boolean>(() => false);         //local (esse é o trigger do useState acima para o atributo 'server')
 
     //start-up
     const socket = SocketConnection.getInstance();
+
     useEffect(() => {
-        socket.connect('http://192.168.0.132:2222');
-        socket.addEventListener('robot-msg', (msg) => {
-            setMsgFromRobot(msg);
-            setInfoText([msg]);
+        socket.set('app', {name: 'Pegaso Robot Controller', password: 'some password I have to change later'});
+        socket.connect(`${SERVER}:${PORT}`, setConnectionWithServer);
+        socket.addEventListener('msg-from-server', (msg: string) => {
+            const content: msgType = JSON.parse(msg);
+            setMsgReceived(content);
         });
     }, []);
 
+
     useEffect(() => {
-        if(direction !== 'none'){
-            setInfoText(['enviando...']);
-            socket.emit('robot-msg', getStartMessage(direction, axis, length, speed, microstep));
+        if(connectionWithServer){
+            socket.sendAppInfo();
+            socket.bindRobot();                                                                     
+        }
+        setConnection((prev) => ({...prev, server: connectionWithServer}));
+    }, [connectionWithServer]);
+
+
+    useEffect(() => {
+        if(connection.server){
+            if (direction !== 'none') {
+                setInfoText(['enviando...']);
+                socket.sendMessageToRobot(getStartMessage(direction, axis, length, speed, microstep));
+            } else {
+                (length === INFINITE_LENGTH) &&
+                socket.sendMessageToRobot(getEndMessage());
+            }
         } else {
-            (length === INFINITE_LENGTH) && socket.emit('robot-msg', getEndMessage());
+            setInfoText(['Impossível enviar comando:','você não está conectado ao servidor.']);
         }
     }, [direction]);
 
+
+    useEffect(() => {
+        if(msgReceived){
+            const received = msgReceived.content[0];
+            if(received.includes('sequence-update')){
+                const newSeq = received.split('|');
+                newSeq.splice(0, 1);
+                console.log('nova sequência enviada pelo robô:', newSeq);
+                setSequence(newSeq);
+            } else {
+                switch(msgReceived.type){
+                    case 'bind-success': setConnection(prev => ({...prev, robot: true})); break;
+                    case 'unbind-success': setConnection(prev => ({...prev, robot: false})); break;
+                    case 'bind-error': setConnection(prev => ({...prev, robot: false})); break;
+                    case 'bind-recover': 
+                        setConnection(prev => ({...prev, robot: true}));
+                        socket.set('robot', {
+                            name: msgReceived.content[1],
+                            password: msgReceived.content[2],
+                        });
+                    break;
+                }
+                setInfoText([received]);
+            }
+        }
+    }, [msgReceived]);
+
+
     const value: GlobalValues = {
+        msgReceived,
         infoText,
+        sequence,
         borderColor,
         axis,
         direction,
         speed,
         length,
         microstep,
-        moving,
-        setMoving,
+        connection,
         setInfoText,
         setBorderColor,
         setAxis,
