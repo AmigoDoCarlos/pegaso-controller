@@ -8,8 +8,10 @@ import { HEADER, INFINITE_LENGTH } from "../contexts/constants";
 //REACT_END
 //ou
 //REACT_RESET
+//ou
+//REACT_POSITION
 
-export const getStartMessage = (direction: string, joint: string, length: number, speed: number, microstep: number) => {
+export const getStartMessage = (direction: string, joint: number, length: number, speed: number, microstep: number) => {
     return (length < INFINITE_LENGTH)
     ?`${HEADER}_${direction}_${joint}_${length}_${speed}_${microstep}`
     :`${HEADER}_START_${direction}_${joint}_${speed}_${microstep}`;
@@ -25,4 +27,8 @@ export const getGoHomeMessage = () => {
 
 export const getResetHomeMessage = () => {
     return `${HEADER}_RESET_HOME`;
+}
+
+export const getPositionMessage = () => {
+    return `${HEADER}_POSITION`;
 }

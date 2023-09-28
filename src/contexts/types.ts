@@ -1,10 +1,10 @@
 export type eventType = {
-    type: 'set_axis'
+    type: 'set_joint'
     | 'set_vel'
     | 'set_des'
     | 'set_res'
-    | 'move_axis'
-    | 'stop_axis'
+    | 'move_joint'
+    | 'stop_joint'
     | 'rst_home'
     | 'goto_home'
     | 'left_pos'

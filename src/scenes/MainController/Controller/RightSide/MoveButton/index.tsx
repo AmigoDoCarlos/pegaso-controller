@@ -21,8 +21,8 @@ export default function MoveButton({name, icon, onTouch, onRelease}:MoveButtonPr
             <Button
                 borderColor={color}
                 flex={1}
-                onTouch={() => onTouch({type: 'move_axis', value: name})}
-                onTouchEnd={() => onRelease({type: 'stop_axis', value: name})}
+                onTouch={() => onTouch({type: 'move_joint', value: name})}
+                onTouchEnd={() => onRelease({type: 'stop_joint', value: name})}
             >
                 <Image source={icon} style={{width: 20, height: 20}}/>
             </Button>

@@ -44,25 +44,24 @@ function getLengthText(index: number){
 
 export default function LeftSide({borderColor}: LeftSideProps){
 
-    const { setAxis, setSpeed, setLength, setInfoText, direction} = useGlobalContext();
+    const { setJoint, setSpeed, setLength, setInfoText, direction} = useGlobalContext();
 
     const handleEvent = (e: eventType) => {
         switch(e.type){
-            case 'set_axis':
-                if(typeof e.value === 'string'){
-                    setInfoText([`Junta ${e.value} selecionada.`]);
-                    setAxis(e.value);
+            case 'set_joint':
+                if(typeof e.value === 'number'){
+                    setJoint(e.value);
                 }
                 break;
             case 'set_des':
                 if(typeof e.value === 'number'){
-                    setInfoText(getLengthText(e.value));
+                    setInfoText(prev => [prev[0], ...getLengthText(e.value as number)]);
                     setLength(e.value);
                 }
                 break;
             case 'set_vel':
                 if(typeof e.value === 'number'){
-                    setInfoText([getSpeedText(e.value)]);
+                    setInfoText(prev => [prev[0], getSpeedText(e.value as number)]);
                     setSpeed(e.value);
                 }
                 break;
@@ -75,14 +74,14 @@ export default function LeftSide({borderColor}: LeftSideProps){
         <Left>
             <Section style={{borderColor}}>
                 <ButtonRow>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>BASE</AxisButton>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>A</AxisButton>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>B</AxisButton>
+                    <AxisButton value={0} onClick={handleEvent} disabled={isDisabled}>BASE</AxisButton>
+                    <AxisButton value={1} onClick={handleEvent} disabled={isDisabled}>A</AxisButton>
+                    <AxisButton value={2} onClick={handleEvent} disabled={isDisabled}>B</AxisButton>
                 </ButtonRow>
                 <ButtonRow>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>C</AxisButton>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>D</AxisButton>
-                    <AxisButton onClick={handleEvent} disabled={isDisabled}>E</AxisButton>
+                    <AxisButton value={3} onClick={handleEvent} disabled={isDisabled}>C</AxisButton>
+                    <AxisButton value={4} onClick={handleEvent} disabled={isDisabled}>D</AxisButton>
+                    <AxisButton value={5} onClick={handleEvent} disabled={isDisabled}>E</AxisButton>
                 </ButtonRow>
             </Section>
             <Sliders>

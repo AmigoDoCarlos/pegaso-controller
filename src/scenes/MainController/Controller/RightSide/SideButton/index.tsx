@@ -15,7 +15,7 @@ interface MoveButtonProps {
 export default function SideButton({onClick, icon, value, width, height}: MoveButtonProps){
     return (
         <ButtonContainer>
-            <Button onTouch={() => onClick({type: 'move_axis', value})} width={width?? "100%"} height={height?? 100}>
+            <Button onTouch={() => onClick({type: 'move_joint', value})} width={width?? "100%"} height={height?? 100}>
                 <Image source={icon} style={{width: '40%', height: '40%'}} />
             </Button>
         </ButtonContainer>

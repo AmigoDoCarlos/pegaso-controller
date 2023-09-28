@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState, useEffect } from 'react';
-import { getEndMessage, getStartMessage } from '../lib/commands';
+import { getEndMessage, getPositionMessage, getStartMessage } from '../lib/commands';
 import { INFINITE_LENGTH, SERVER, PORT } from './constants';
 import { colors } from '../colors';
 import { connections, msgType } from './types';
@@ -14,7 +14,7 @@ interface GlobalValues {
     infoText: string[];
     sequence: string[];
     borderColor: string;
-    axis: string,
+    joint: number,
     direction: string,
     speed: number,
     length: number,
@@ -22,7 +22,7 @@ interface GlobalValues {
     connection: connections,
     setInfoText: React.Dispatch<React.SetStateAction<string[]>>,
     setBorderColor: React.Dispatch<React.SetStateAction<string>>,
-    setAxis: React.Dispatch<React.SetStateAction<string>>,
+    setJoint: React.Dispatch<React.SetStateAction<number>>,
     setDirection: React.Dispatch<React.SetStateAction<string>>,
     setSpeed: React.Dispatch<React.SetStateAction<number>>,
     setLength: React.Dispatch<React.SetStateAction<number>>,
@@ -34,15 +34,15 @@ const initial: GlobalValues = {
     infoText: ['Bem Vindo(a) ao projeto Pégaso!', 'acesse as configurações para vincular o robô.'],
     sequence: [],
     borderColor: colors.blue,
-    axis: 'BASE',
+    joint: 0,
     direction: 'none',
     speed: 1,
     length: 3,
-    microstep: 16,
+    microstep: 1,
     connection: {server: false, robot: false},
     setInfoText: () => {},
     setBorderColor: () => {},
-    setAxis: () => {},
+    setJoint: () => {},
     setDirection: () => {},
     setSpeed: () => {},
     setLength: () => {},
@@ -65,7 +65,7 @@ export default function GlobalProvider(props: GlobalProviderProps) {
     const [infoText, setInfoText] = useState<string[]>(initial.infoText);
     const [sequence, setSequence] = useState<string[]>(initial.sequence);
     const [borderColor, setBorderColor] = useState<string>(initial.borderColor);
-    const [axis, setAxis] = useState<GlobalValues['axis']>(initial.axis);
+    const [joint, setJoint] = useState<GlobalValues['joint']>(initial.joint);
     const [direction, setDirection] = useState<GlobalValues['direction']>(initial.direction);
     const [speed, setSpeed] = useState<GlobalValues['speed']>(initial.speed);
     const [length, setLength] = useState<GlobalValues['length']>(initial.length);
@@ -94,31 +94,16 @@ export default function GlobalProvider(props: GlobalProviderProps) {
         }
         setConnection((prev) => ({...prev, server: connectionWithServer}));
     }, [connectionWithServer]);
-
-
-    useEffect(() => {
-        if(connection.server){
-            if (direction !== 'none') {
-                setInfoText(['enviando...']);
-                socket.sendMessageToRobot(getStartMessage(direction, axis, length, speed, microstep));
-            } else {
-                (length === INFINITE_LENGTH) &&
-                socket.sendMessageToRobot(getEndMessage());
-            }
-        } else {
-            setInfoText(['Impossível enviar comando:','você não está conectado ao servidor.']);
-        }
-    }, [direction]);
-
+    
 
     useEffect(() => {
         if(msgReceived){
             const received = msgReceived.content[0];
+            const partsOfMessage = received.split('|');
             if(received.includes('sequence-update')){
-                const newSeq = received.split('|');
-                newSeq.splice(0, 1);
-                console.log('nova sequência enviada pelo robô:', newSeq);
-                setSequence(newSeq);
+                partsOfMessage.splice(0, 1);
+                console.log('nova sequência enviada pelo robô:', partsOfMessage);
+                setSequence(partsOfMessage);
             } else {
                 switch(msgReceived.type){
                     case 'bind-success': setConnection(prev => ({...prev, robot: true})); break;
@@ -130,9 +115,11 @@ export default function GlobalProvider(props: GlobalProviderProps) {
                             name: msgReceived.content[1],
                             password: msgReceived.content[2],
                         });
-                    break;
+                        setInfoText([received]);
+                        socket.sendMessageToRobot(getPositionMessage());
+                    return;
                 }
-                setInfoText([received]);
+                setInfoText(partsOfMessage);
             }
         }
     }, [msgReceived]);
@@ -143,7 +130,7 @@ export default function GlobalProvider(props: GlobalProviderProps) {
         infoText,
         sequence,
         borderColor,
-        axis,
+        joint,
         direction,
         speed,
         length,
@@ -151,7 +138,7 @@ export default function GlobalProvider(props: GlobalProviderProps) {
         connection,
         setInfoText,
         setBorderColor,
-        setAxis,
+        setJoint,
         setDirection,
         setSpeed,
         setLength,
